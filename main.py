@@ -57,18 +57,28 @@ class FindLaneLines:
         out_clip = clip.fl_image(self.forward)
         out_clip.write_videofile(output_path, audio=False)
 
+def show_curvature(input_path):
+    calibration = CameraCalibration('camera_cal', 9, 6)
+    thresholding = Thresholding()
+    transform = PerspectiveTransformation()
+    lanelines = LaneLines()
+    img = mpimg.imread(input_path)
+    out_img = np.copy(img)
+    img = calibration.undistort(img)
+    img = transform.forward(img)
+    bird_eye_img = np.copy(img)
+    img = thresholding.forward(img)
+    img = lanelines.forward(img)
+    img = transform.backward(img)
+    print(lanelines.measure_curvature())
 def main():
-    # args = docopt(__doc__)
-    # input = args['INPUT_PATH']
-    # output = args['OUTPUT_PATH']
-    # input = "/Users/namle/BachKhoa/HK232/DOANAI/Advanced-Lane-Lines/project_video.mp4"
-    # output = "/Users/namle/BachKhoa/HK232/DOANAI/Advanced-Lane-Lines/output2_video.mp4"
+
     calibration = CameraCalibration('camera_cal', 9, 6)
     thresholding = Thresholding()
     transform = PerspectiveTransformation()
     lanelines = LaneLines()
     video = cv2.VideoCapture("/Users/namle/BachKhoa/HK232/DOANAI/Advanced-Lane-Lines/project_video.mp4")
-    # video = cv2.VideoCapture("/Users/namle/BachKhoa/HK232/DOANAI/Advanced-Lane-Lines/video.mp4")
+
     video.set(cv2.CAP_PROP_FPS, 10)
     while (video.isOpened()):
         try:
@@ -87,14 +97,13 @@ def main():
             out_img = cv2.addWeighted(out_img, 1, img, 0.6, 0)
             out_img = lanelines.plot(out_img)
 
-            # cv2.imshow("test",out_img)
-            # cv2.imshow("test2",img)
             combined_img = np.hstack((out_img, img_real,bird_eye_img))
             cv2.imshow("Combined Images", combined_img)
             if cv2.waitKey(1) == ord('q'):break
         except Exception as e:
             print(e)
    
+show_curvature("/Users/namle/BachKhoa/HK232/DOANAI/Advanced-Lane-Lines/test_images/challenge_video_frame_10.jpg")
+# if __name__ == "__main__":
 
-if __name__ == "__main__":
-    main()
+#     main()
